@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend
+FROM node:24.11-alpine AS frontend
 WORKDIR /webapp
 COPY webapp/package*.json ./
 RUN npm ci
@@ -7,6 +7,7 @@ RUN npm run build
 
 FROM golang:1.25.8-alpine AS backend
 WORKDIR /server
+RUN apk add --no-cache make
 COPY server/go.mod server/go.sum ./
 RUN go mod download
 COPY server/ .
