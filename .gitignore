@@ -180,3 +180,8 @@ server/shard-*.txt
 # .sh
 
 *.sh
+!webapp/platform/mattermost-redux/postbuild.sh
+
+# Log file
+
+*.log

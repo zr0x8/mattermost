@@ -1,8 +1,7 @@
 FROM node:24.11-alpine AS frontend
 WORKDIR /webapp
-COPY webapp/package*.json ./
+COPY webapp/ ./
 RUN npm ci
-COPY webapp/ .
 RUN npm run build
 
 FROM golang:1.25.8-alpine AS backend
