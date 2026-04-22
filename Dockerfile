@@ -35,7 +35,7 @@ COPY --from=backend  --chown=${PUID}:${PGID} /server/bin/mattermost  /mattermost
 COPY --from=backend  --chown=${PUID}:${PGID} /server/config/         /mattermost/config/
 COPY --from=backend  --chown=${PUID}:${PGID} /server/i18n/           /mattermost/i18n/
 COPY --from=backend  --chown=${PUID}:${PGID} /server/templates/      /mattermost/templates/
-COPY --from=frontend --chown=${PUID}:${PGID} /webapp/dist/           /mattermost/client/
+COPY --from=frontend --chown=${PUID}:${PGID} /webapp/channels/dist/  /mattermost/client/
 
 USER ${PUID}
 WORKDIR /mattermost
