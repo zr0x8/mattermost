@@ -41,14 +41,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Go
-        if: needs.detect-changes.outputs.backend == 'true'
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: server/go.mod
           cache: true
 
       - name: Setup Node
-        if: needs.detect-changes.outputs.frontend == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -56,14 +54,12 @@ jobs:
           cache-dependency-path: webapp/package-lock.json
 
       - name: Build webapp
-        if: needs.detect-changes.outputs.frontend == 'true'
         run: |
           cd webapp
           npm ci
           npm run build
 
       - name: Build server
-        if: needs.detect-changes.outputs.backend == 'true'
         run: make build-linux
 
       - name: Download previous release as base
