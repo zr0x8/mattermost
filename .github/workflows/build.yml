@@ -63,7 +63,7 @@ jobs:
           npm run build
 
       - name: Build server
-        run: make build-linux
+        run: cd server && make build-linux
 
       - name: Download previous release as base
         run: |
