@@ -25,8 +25,8 @@ jobs:
           filters: |
             backend:
               - '**/*.go'
-              - 'go.mod'
-              - 'go.sum'
+              - 'server/go.mod'
+              - 'server/go.sum'
             frontend:
               - 'webapp/**'
 
@@ -44,7 +44,7 @@ jobs:
         if: needs.detect-changes.outputs.backend == 'true'
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: server/go.mod
           cache: true
 
       - name: Setup Node
@@ -68,27 +68,36 @@ jobs:
 
       - name: Download previous release as base
         run: |
-          gh release download --pattern "*.tar.gz" --dir base-release \
-            $(gh release list --limit 1 --json tagName -q '.[0].tagName')
-          tar -xzf base-release/*.tar.gz -C base-release/
+          set +e
+          PREV_TAG=$(gh release list --limit 1 --json tagName -q '.[0].tagName')
+          if [ -n "$PREV_TAG" ]; then
+            gh release download --pattern "*.tar.gz" --dir base-release "$PREV_TAG"
+            if ls base-release/*.tar.gz >/dev/null 2>&1; then
+              tar -xzf base-release/*.tar.gz -C base-release/
+            fi
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
       - name: Merge changes into package
         run: |
-          mkdir -p dist/mattermost
+          mkdir -p dist/mattermost dist/mattermost/bin dist/mattermost/client
 
           if [ -d base-release/mattermost ]; then
             cp -r base-release/mattermost/. dist/mattermost/
           fi
 
+          [ -f server/bin/mattermost ] && cp server/bin/mattermost dist/mattermost/bin/
           [ -f bin/mattermost ] && cp bin/mattermost dist/mattermost/bin/
           [ -d webapp/dist ]    && cp -r webapp/dist/. dist/mattermost/client/
 
-          cp -r config    dist/mattermost/
-          cp -r i18n      dist/mattermost/
-          cp -r templates dist/mattermost/
+          [ -d server/config ]    && cp -r server/config dist/mattermost/
+          [ -d server/i18n ]      && cp -r server/i18n dist/mattermost/
+          [ -d server/templates ] && cp -r server/templates dist/mattermost/
+          [ -d config ]           && cp -r config dist/mattermost/
+          [ -d i18n ]             && cp -r i18n dist/mattermost/
+          [ -d templates ]        && cp -r templates dist/mattermost/
 
           tar -czf "${MM_PACKAGE}" -C dist mattermost
 
@@ -96,3 +105,30 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.MM_PACKAGE }}
+
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest
