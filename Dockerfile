@@ -1,6 +1,6 @@
-FROM node:24.11-alpine AS frontend
+FROM node:24-alpine AS frontend
 WORKDIR /webapp
-RUN apk add --no-cache build-base autoconf automake libtool nasm
+RUN apk add --no-cache build-base autoconf automake libtool nasm pkgconfig
 COPY webapp/ ./
 RUN npm ci
 RUN npm run build
