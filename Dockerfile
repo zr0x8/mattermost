@@ -1,12 +1,13 @@
 FROM node:24.11-alpine AS frontend
 WORKDIR /webapp
+RUN apk add --no-cache build-base autoconf automake libtool nasm
 COPY webapp/ ./
 RUN npm ci
 RUN npm run build
 
 FROM golang:1.25.8-alpine AS backend
 WORKDIR /server
-RUN apk add --no-cache make
+RUN apk add --no-cache make git
 COPY server/go.mod server/go.sum ./
 RUN go mod download
 COPY server/ .
