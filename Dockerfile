@@ -1,6 +1,8 @@
-FROM node:24-alpine AS frontend
+FROM node:24 AS frontend
 WORKDIR /webapp
-RUN apk add --no-cache build-base autoconf automake libtool nasm pkgconfig
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential autoconf automake libtool nasm pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 COPY webapp/ ./
 RUN npm ci
 RUN npm run build
