@@ -1,10 +1,10 @@
-# ── Frontend Build ────────────────────────────────────────────────────────────
+# Frontend Build
 FROM node:24 AS frontend
 WORKDIR /webapp
 COPY webapp/ ./
 RUN npm ci && npm run build
 
-# ── Backend Build ─────────────────────────────────────────────────────────────
+# Backend Build
 FROM golang:1.25.8-alpine AS backend
 WORKDIR /server
 RUN apk add --no-cache make git
@@ -13,7 +13,7 @@ RUN go mod download
 COPY server/ .
 RUN make build-linux
 
-# ── Final Image ───────────────────────────────────────────────────────────────
+# Final Image 
 FROM ubuntu:noble
 ARG PUID=2000
 ARG PGID=2000
@@ -33,6 +33,7 @@ RUN apt-get update \
 
 COPY --from=backend  --chown=${PUID}:${PGID} /server/bin/mattermost  /mattermost/bin/mattermost
 COPY --from=backend  --chown=${PUID}:${PGID} /server/config/         /mattermost/config/
+COPY --from=backend  --chown=${PUID}:${PGID} /server/fonts/          /mattermost/fonts/
 COPY --from=backend  --chown=${PUID}:${PGID} /server/i18n/           /mattermost/i18n/
 COPY --from=backend  --chown=${PUID}:${PGID} /server/templates/      /mattermost/templates/
 COPY --from=frontend --chown=${PUID}:${PGID} /webapp/channels/dist/  /mattermost/client/
