@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import styled from 'styled-components';
 
 import {useCurrentProductId} from 'utils/products';
@@ -35,12 +35,21 @@ const GlobalHeader = (): JSX.Element | null => {
     const isLoggedIn = useIsLoggedIn();
     const currentProductID = useCurrentProductId();
 
+    useEffect(() => {
+        const buildTime = new Date().toISOString();
+        console.log(`[Mattermost Build Debug] GlobalHeader rendered at ${buildTime}`);
+        console.log('[Mattermost Build Debug] Eye button (icon: mắt) has been added to RightControls - EyeButton component is active');
+    }, []);
+
     if (!isLoggedIn) {
         return null;
     }
 
     return (
-        <GlobalHeaderContainer id='global-header'>
+        <GlobalHeaderContainer 
+            id='global-header'
+            data-build-timestamp={new Date().toISOString()}
+        >
             <LeftControls/>
             <CenterControls productId={currentProductID}/>
             <RightControls productId={currentProductID}/>

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
-import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
 
 import type {ProductIdentifier} from '@mattermost/types/products';
 
@@ -26,7 +25,7 @@ import AtMentionsButton from './at_mentions_button/at_mentions_button';
 import PlanUpgradeButton from './plan_upgrade_button';
 import SavedPostsButton from './saved_posts_button/saved_posts_button';
 import SettingsButton from './settings_button';
-import ZabbixMonitorButton from './zabbix_monitor_button/zabbix_monitor_button';
+import EyeButton from './eye_button';
 
 const RightControlsContainer = styled.div`
     display: flex;
@@ -59,6 +58,11 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
 
     const showCustomizeTip = useShowOnboardingTutorialStep(tourStep);
 
+    // Debug logging for build verification
+    useEffect(() => {
+        console.log('[Mattermost Build Debug] RightControls rendered - EyeButton component is included');
+    }, []);
+
     return (
         <RightControlsContainer
             id={'RightControlsContainer'}
@@ -67,19 +71,8 @@ const RightControls = ({productId = null}: Props): JSX.Element => {
             {isChannels(productId) ? (
                 <>
                     <AtMentionsButton/>
-                    <ZabbixMonitorButton/>
+                    <EyeButton/>
                     <SavedPostsButton/>
-                    <button
-                        type='button'
-                        className='HeaderIconButton'
-                        aria-label='View'
-                    >
-                        <EyeOutlineIcon
-                            size={18}
-                            color={'currentColor'}
-                            aria-hidden='true'
-                        />
-                    </button>
                 </>
             ) : (
                 <Pluggable
