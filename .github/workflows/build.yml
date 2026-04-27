@@ -107,6 +107,8 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    env:
+      WEBHOOK_URL: ${{ secrets.DOCKER_BUILD_WEBHOOK_URL }}
     permissions:
       contents: read
       packages: write
@@ -133,9 +135,7 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
 
       - name: Triggering Jenkins
-        if: ${{ success() && secrets.DOCKER_BUILD_WEBHOOK_URL != '' }}
-        env:
-          WEBHOOK_URL: ${{ secrets.DOCKER_BUILD_WEBHOOK_URL }}
+        if: ${{ success() && env.WEBHOOK_URL != '' }}
         run: |
           curl --fail --show-error --silent \
             -X POST "$WEBHOOK_URL"
