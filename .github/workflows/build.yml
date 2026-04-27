@@ -131,3 +131,11 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
+
+      - name: Triggering Jenkins
+        if: ${{ success() && secrets.DOCKER_BUILD_WEBHOOK_URL != '' }}
+        env:
+          WEBHOOK_URL: ${{ secrets.DOCKER_BUILD_WEBHOOK_URL }}
+        run: |
+          curl --fail --show-error --silent \
+            -X POST "$WEBHOOK_URL"

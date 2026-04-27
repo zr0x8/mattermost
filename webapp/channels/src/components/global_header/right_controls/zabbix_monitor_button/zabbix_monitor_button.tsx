@@ -24,6 +24,7 @@ const ZabbixMonitorButton = (): JSX.Element => {
                 type='button'
                 className='HeaderIconButton'
                 onClick={openZabbixMonitor}
+                data-testid='zabbixMonitorButton'
                 aria-label={formatMessage({id: 'global_header.zabbixMonitor', defaultMessage: 'Zabbix monitor'})}
             >
                 <svg
@@ -34,6 +35,7 @@ const ZabbixMonitorButton = (): JSX.Element => {
                     xmlns='http://www.w3.org/2000/svg'
                     aria-hidden='true'
                     focusable='false'
+                    style={{display: 'block'}}
                 >
                     <rect
                         x='3'
