@@ -1,4 +1,19 @@
-# First stage - Ubuntu with document processing dependencies and curl for downloading
+# Build stage - Frontend
+FROM node:24 AS frontend
+WORKDIR /webapp
+COPY webapp/ ./
+RUN npm ci && npm run build
+
+# Build stage - Backend
+FROM golang:1.25.8-alpine AS backend
+WORKDIR /server
+RUN apk add --no-cache make git
+COPY server/go.mod server/go.sum ./
+RUN go mod download
+COPY server/ .
+RUN make build-linux
+
+# Final stage - Ubuntu with document processing dependencies
 FROM ubuntu:noble-20251013@sha256:c35e29c9450151419d9448b0fd75374fec4fff364a27f176fb458d472dfc9e54 AS builder
 # Setting bash as our shell, and enabling pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -6,15 +21,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Build Arguments
 ARG PUID=2000
 ARG PGID=2000
-# MM_PACKAGE build arguments controls which version of mattermost to install, defaults to latest stable enterprise
-# e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
-ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
 # Install needed packages and indirect dependencies
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
-  curl \
   media-types \
   mailcap \
   unrtf \
@@ -24,12 +35,19 @@ RUN apt-get update \
   tzdata \
   && rm -rf /var/lib/apt/lists/*
 
-# Set mattermost group/user and download Mattermost
+# Set mattermost group/user and prepare directories (no download, we'll copy from build stages)
 RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   && groupadd --gid ${PGID} mattermost \
-  && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
-  && curl -L $MM_PACKAGE | tar -xvz \
-  && chown -R mattermost:mattermost /mattermost /mattermost/data /mattermost/plugins /mattermost/client/plugins
+  && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost
+
+# Copy built backend binaries and files from backend build stage
+COPY --from=backend --chown=${PUID}:${PGID} /server/bin/mattermost /mattermost/bin/mattermost
+COPY --from=backend --chown=${PUID}:${PGID} /server/config/ /mattermost/config/
+COPY --from=backend --chown=${PUID}:${PGID} /server/i18n/ /mattermost/i18n/
+COPY --from=backend --chown=${PUID}:${PGID} /server/templates/ /mattermost/templates/
+
+# Copy built frontend assets from frontend build stage
+COPY --from=frontend --chown=${PUID}:${PGID} /webapp/channels/dist/ /mattermost/client/
 
 # Create PostgreSQL client SSL directory structure for ssl_mode=require
 RUN mkdir -p /mattermost/.postgresql \

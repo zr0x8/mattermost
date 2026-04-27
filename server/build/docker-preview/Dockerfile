@@ -1,5 +1,13 @@
-# Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-# See License.txt for license information.
+# Build stage - Backend
+FROM golang:1.25.8-alpine AS backend
+WORKDIR /server
+RUN apk add --no-cache make git
+COPY server/go.mod server/go.sum ./
+RUN go mod download
+COPY server/ .
+RUN make build-linux
+
+# Final stage
 FROM postgres:14
 
 RUN apt-get update && apt-get install -y ca-certificates
@@ -18,11 +26,13 @@ ENV POSTGRES_DB=mattermost_test
 #
 WORKDIR /mm
 
-# Copy over files
-ADD https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz .
-RUN tar -zxvf mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz
-ADD config_docker.json ./mattermost/config/config_docker.json
-ADD docker-entry.sh .
+# Copy built backend binary from backend build stage
+COPY --from=backend /server/bin/mattermost ./mattermost/bin/mattermost
+COPY --from=backend /server/config /mattermost/config
+
+# Copy configuration file (if exists)
+COPY config_docker.json ./mattermost/config/config_docker.json 2>/dev/null || true
+COPY docker-entry.sh .
 
 RUN chmod +x ./docker-entry.sh
 ENTRYPOINT ./docker-entry.sh
