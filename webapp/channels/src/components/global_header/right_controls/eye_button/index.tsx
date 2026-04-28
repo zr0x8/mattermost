@@ -1,5 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
@@ -12,7 +11,6 @@ const EyeButton = (): JSX.Element => {
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        // Open /zabbix_monitor/ in a new tab
         window.open(`${window.location.origin}/zabbix_monitor/`, '_blank');
     };
 
@@ -21,7 +19,7 @@ const EyeButton = (): JSX.Element => {
             title={(
                 <FormattedMessage
                     id='global_header.preview'
-                    defaultMessage='Preview'
+                    defaultMessage='Zabbix Monitor'
                 />
             )}
         >
