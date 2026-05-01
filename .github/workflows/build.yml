@@ -107,8 +107,6 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    env:
-      WEBHOOK_URL: ${{ secrets.DOCKER_BUILD_WEBHOOK_URL }}
     permissions:
       contents: read
       packages: write
@@ -134,8 +132,13 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
 
-      - name: Triggering Jenkins
-        if: ${{ success() && env.WEBHOOK_URL != '' }}
-        run: |
-          curl --fail --show-error --silent \
-            -X POST "$WEBHOOK_URL"
+      - name: Trigger Jenkins deploy via SSH
+        if: success()
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.CONTROL_NODE_HOST }}
+          username: ${{ secrets.CONTROL_NODE_SSH_USER }}
+          key: ${{ secrets.CONTROL_NODE_SSH_KEY }}
+          script: |
+            curl --fail --silent --show-error \
+              -X POST "http://localhost:8080/job/deploy-mattermost/build?token=${{ secrets.JENKINS_JOB_TOKEN }}"
