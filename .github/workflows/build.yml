@@ -140,5 +140,6 @@ jobs:
           username: ${{ secrets.CONTROL_NODE_SSH_USER }}
           key: ${{ secrets.CONTROL_NODE_SSH_KEY }}
           script: |
-            curl --fail --silent --show-error \
+            curl -g --fail --silent --show-error \
+              -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}" \
               -X POST "http://localhost:8080/job/deploy-mattermost/build?token=${{ secrets.JENKINS_JOB_TOKEN }}"
