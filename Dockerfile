@@ -28,8 +28,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --gid ${PGID} mattermost \
   && useradd --uid ${PUID} --gid ${PGID} --comment "" --home-dir /mattermost mattermost \
-  && mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins /mattermost/.postgresql \
-  && chmod 700 /mattermost/.postgresql
+  && mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins
 
 COPY --from=backend  --chown=${PUID}:${PGID} /server/bin/mattermost  /mattermost/bin/mattermost
 COPY --from=backend  --chown=${PUID}:${PGID} /server/config/         /mattermost/config/
