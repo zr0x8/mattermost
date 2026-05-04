@@ -19,7 +19,7 @@ const EyeButton = (): JSX.Element => {
             title={(
                 <FormattedMessage
                     id='global_header.preview'
-                    defaultMessage='Zabbix Monitor'
+                    defaultMessage='Zabbix'
                 />
             )}
         >
